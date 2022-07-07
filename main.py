@@ -33,12 +33,12 @@ def scan_files(pdir):
                         if ("error" in l.lower() or "exception" in l.lower()) and check_lines(ident_file):
                             if f.count(l) > 1:
                                 open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'Ошибка в файле {pdir}+\\+{pname}, строка {f.index(l) + 1}')
+                                send_notification(f'Ошибка в файле {pdir}+\\+{pname}.\nCтрока:{f.index(l) + 1}\nТекст:{l}')
                                 f[f.index(l)] = ''
                                 print(f)
                             else:
                                 open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'Ошибка в файле {pdir}+\\+{pname}, строка {f.index(l) + 1}')
+                                send_notification(f'Ошибка в файле {pdir}+\\+{pname}.\nCтрока:{f.index(l) + 1}\nТекст:{l}')
                                 f[f.index(l)] = ''
                         else:
                             f[f.index(l)] = ''
