@@ -26,7 +26,7 @@ def scan_files(pdir):
     while True:
         ident_file = ''
         for pname in os.listdir(pdir):
-            if os.path.isfile(pdir + '\\' + pname) and os.path.getmtime(pdir + '\\' + pname) - time.time() >= -100:
+            if os.path.isfile(pdir + '\\' + pname) and (pname.endswith('.txt') or pname.endswith('.log')  )and os.path.getmtime(pdir + '\\' + pname) - time.time() >= -100:
                 with open(pdir + '\\' + pname, 'r') as f:
                     f = f.readlines()
                     for l in f:
