@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import yaml
 
 import requests
 from bot_req import *
@@ -14,7 +13,6 @@ def send_notification(msg_text):
 
 
 def check_lines(test):
-    global f
     for line in open('exc.txt', 'r').readlines():
         if test == line:
             return False
@@ -22,16 +20,17 @@ def check_lines(test):
 
 
 def scan_files(pdir):
-    global f
     while True:
         ident_file = ''
         for pname in os.listdir(pdir):
-            if os.path.isfile(pdir + '\\' + pname) and (pname.endswith('.txt') or pname.endswith('.log')  )and os.path.getmtime(pdir + '\\' + pname) - time.time() >= -100:
+            if os.path.isfile(pdir + '\\' + pname) and (
+                    pname.endswith('.txt') or pname.endswith('.log')) and os.path.getmtime(
+                    pdir + '\\' + pname) - time.time() >= -100:
                 with open(pdir + '\\' + pname, 'r') as f:
                     f = f.readlines()
                     for l in f:
                         ident_file = pdir + '\\' + pname + ' ' + l.replace('\n', '') + ' ' + str(f.index(l) + 1) + '\n'
-                        if "error" in l and check_lines(ident_file):
+                        if ("error" in l.lower() or "exception" in l.lower()) and check_lines(ident_file):
                             if f.count(l) > 1:
                                 open('exc.txt', 'a').write(ident_file)
                                 send_notification(f'Ошибка в файле {pdir}+\\+{pname}, строка {f.index(l) + 1}')
