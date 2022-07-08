@@ -44,7 +44,7 @@ def scan_files(pdir):
                                 ident_file) and not is_exc(l.lower()):
                             if f.count(l) > 1:
                                 open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'<b>{pname}</b> ({pdir}).\nCтрока:{f.index(l) + 1}\nТекст:{l}')
+                                send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
                                 f[f.index(l)] = ''
                                 print(f)
                             else:
