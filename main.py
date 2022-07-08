@@ -5,11 +5,21 @@ import time
 import requests
 from bot_req import *
 
+excs = ["declare error_code", "ignore error code"]
+
 
 def send_notification(msg_text):
     for gid in groups_id:
-        url_req = "https://api.telegram.org/bot" + TOKEN + "/sendMessage" + "?chat_id=" + gid + "&text=" + msg_text
+        url_req = "https://api.telegram.org/bot" + TOKEN + "/sendMessage" + "?chat_id=" + gid + "&parse_mode=HTML" + "&text=" + msg_text
         results = requests.get(url_req)
+
+
+def is_exc(pl):
+    global excs
+    for i in excs:
+        if i in pl:
+            return True
+    return False
 
 
 def check_lines(test):
@@ -25,20 +35,21 @@ def scan_files(pdir):
         for pname in os.listdir(pdir):
             if os.path.isfile(pdir + '\\' + pname) and (
                     pname.endswith('.txt') or pname.endswith('.log')) and os.path.getmtime(
-                    pdir + '\\' + pname) - time.time() >= -100:
+                pdir + '\\' + pname) - time.time() >= -100:
                 with open(pdir + '\\' + pname, 'r') as f:
                     f = f.readlines()
                     for l in f:
                         ident_file = pdir + '\\' + pname + ' ' + l.replace('\n', '') + ' ' + str(f.index(l) + 1) + '\n'
-                        if ("error" in l.lower() or "exception" in l.lower()) and check_lines(ident_file):
+                        if ("error" in l.lower() or "exception" in l.lower()) and check_lines(
+                                ident_file) and not is_exc(l.lower()):
                             if f.count(l) > 1:
                                 open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'Ошибка в файле {pdir}+\\+{pname}.\nCтрока:{f.index(l) + 1}\nТекст:{l}')
+                                send_notification(f'<b>{pname}</b> ({pdir}).\nCтрока:{f.index(l) + 1}\nТекст:{l}')
                                 f[f.index(l)] = ''
                                 print(f)
                             else:
                                 open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'Ошибка в файле {pdir}+\\+{pname}.\nCтрока:{f.index(l) + 1}\nТекст:{l}')
+                                send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
                                 f[f.index(l)] = ''
                         else:
                             f[f.index(l)] = ''
