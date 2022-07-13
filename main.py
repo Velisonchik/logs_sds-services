@@ -37,22 +37,23 @@ def scan_files(pdir):
                     pname.endswith('.txt') or pname.endswith('.log')) and os.path.getmtime(
                 pdir + '\\' + pname) - time.time() >= -100:
                 with open(pdir + '\\' + pname, 'r') as f:
+                    msg = ''
                     f = f.readlines()
                     for l in f:
                         ident_file = pdir + '\\' + pname + ' ' + l.replace('\n', '') + ' ' + str(f.index(l) + 1) + '\n'
                         if ("error" in l.lower() or "exception" in l.lower()) and check_lines(
                                 ident_file) and not is_exc(l.lower()):
-                            if f.count(l) > 1:
-                                open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
-                                f[f.index(l)] = ''
-                                print(f)
+                            open('exc.txt', 'a').write(ident_file)
+                            if len(msg + f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}\n') > 4090:
+                                send_notification(msg)
+                                msg = ''
                             else:
-                                open('exc.txt', 'a').write(ident_file)
-                                send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
+                                msg += f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}\n'
+                                #send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
                                 f[f.index(l)] = ''
                         else:
                             f[f.index(l)] = ''
+                send_notification(msg)
             elif not os.path.isfile(pdir + '\\' + pname):
                 scan_files(pdir + '\\' + pname)
         break
