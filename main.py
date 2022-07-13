@@ -10,8 +10,11 @@ excs = ["declare error_code", "ignore error code"]
 
 def send_notification(msg_text):
     for gid in groups_id:
-        url_req = "https://api.telegram.org/bot" + TOKEN + "/sendMessage" + "?chat_id=" + gid + "&parse_mode=HTML" + "&text=" + msg_text
-        results = requests.get(url_req)
+        try:
+            url_req = "https://api.telegram.org/bot" + TOKEN + "/sendMessage" + "?chat_id=" + gid + "&parse_mode=HTML" + "&text=" + msg_text
+            results = requests.get(url_req)
+        except Exception as e:
+            print(e)
 
 
 def is_exc(pl):
@@ -30,33 +33,37 @@ def check_lines(test):
 
 
 def scan_files(pdir):
-    while True:
-        ident_file = ''
-        for pname in os.listdir(pdir):
-            if os.path.isfile(pdir + '\\' + pname) and (
-                    pname.endswith('.txt') or pname.endswith('.log')) and os.path.getmtime(
-                pdir + '\\' + pname) - time.time() >= -100:
-                with open(pdir + '\\' + pname, 'r') as f:
-                    msg = ''
-                    f = f.readlines()
-                    for l in f:
-                        ident_file = pdir + '\\' + pname + ' ' + l.replace('\n', '') + ' ' + str(f.index(l) + 1) + '\n'
-                        if ("error" in l.lower() or "exception" in l.lower()) and check_lines(
-                                ident_file) and not is_exc(l.lower()):
-                            open('exc.txt', 'a').write(ident_file)
-                            if len(msg + f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}\n') > 4090:
-                                send_notification(msg)
-                                msg = ''
+    try:
+        while True:
+            ident_file = ''
+            for pname in os.listdir(pdir):
+                if os.path.isfile(pdir + '\\' + pname) and (
+                        pname.endswith('.txt') or pname.endswith('.log')) and os.path.getmtime(
+                    pdir + '\\' + pname) - time.time() >= -100:
+                    with open(pdir + '\\' + pname, 'r') as f:
+                        msg = ''
+                        f = f.readlines()
+                        for l in f:
+                            ident_file = pdir + '\\' + pname + ' ' + l.replace('\n', '') + ' ' + str(f.index(l) + 1) + '\n'
+                            if ("error" in l.lower() or "exception" in l.lower()) and check_lines(
+                                    ident_file) and not is_exc(l.lower()):
+                                open('exc.txt', 'a').write(ident_file)
+                                if len(msg + f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}\n') > 4090:
+                                    send_notification(msg)
+                                    msg = ''
+                                else:
+                                    msg += f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}\n'
+                                    #send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
+                                    f[f.index(l)] = ''
                             else:
-                                msg += f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}\n'
-                                #send_notification(f'<b>{pname}</b> ({pdir})\nCтрока: {f.index(l) + 1}\n{l}')
                                 f[f.index(l)] = ''
-                        else:
-                            f[f.index(l)] = ''
-                send_notification(msg)
-            elif not os.path.isfile(pdir + '\\' + pname):
-                scan_files(pdir + '\\' + pname)
-        break
+                    if msg != '':
+                        send_notification(msg)
+                elif not os.path.isfile(pdir + '\\' + pname):
+                    scan_files(pdir + '\\' + pname)
+            break
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
