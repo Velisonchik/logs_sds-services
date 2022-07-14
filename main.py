@@ -1,8 +1,8 @@
 import os
 import sys
 import time
-
 import requests
+import clear_exc
 from bot_req import *
 
 excs = ["declare error_code", "ignore error code"]
@@ -68,10 +68,12 @@ def scan_files(pdir):
 
 
 if __name__ == '__main__':
-    open('exc.txt', 'a')
     try:
         path_dirs = sys.argv[1].split(',')
         while True:
+            file_stats = os.stat('exc.txt')
+            if file_stats.st_size / (1024 * 1024) > 2:
+                clear_exc.clear()
             for path_dir in path_dirs:
                 scan_files(path_dir)
     except IndexError:
