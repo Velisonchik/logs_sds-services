@@ -70,9 +70,10 @@ def scan_files(pdir):
 if __name__ == '__main__':
     open('exc.txt', 'a')
     try:
-        path_dir = sys.argv[1]
+        path_dirs = sys.argv[1].split(',')
         while True:
-            scan_files(path_dir)
+            for path_dir in path_dirs:
+                scan_files(path_dir)
     except IndexError:
         print('Не указана директория с которой необходимо работать.')
         exit(1)
