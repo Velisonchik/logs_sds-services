@@ -26,9 +26,9 @@ class OnMyWatch:
         try:
             while True:
                 time.sleep(0.1)
-        except:
+        except Exception as e:
             self.observer.stop()
-            print("Observer Stopped")
+            print("Observer Stopped", e)
 
         self.observer.join()
 
@@ -113,8 +113,6 @@ def scan_file(pname):
                 dname = pname[:pname.rfind('\\')]
                 template_head = f'<b>{fname}</b> ({dname})\n\n'
                 msg = template_head
-                # start_index_file = sqlite_select_lastline(pname)
-                # f = f[start_index_file:]
                 for line in f[sqlite_select_lastline(pname):]:
                     if ("error" in line.lower() or "exception" in line.lower()) and not is_exc(line.lower()):
                         if len(msg + f'Cтрока: {f.index(line) + 1}\n{line}\n') > 4090:
