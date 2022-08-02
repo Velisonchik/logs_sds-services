@@ -2,6 +2,7 @@ import os
 import sys
 import sqlite3
 import time
+import datetime
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import requests
@@ -51,9 +52,10 @@ class Handler(FileSystemEventHandler):
 def send_notification(msg_text):
     for gid in groups_id:
         try:
-            url_req = "https://api.telegram.org/bot" + TOKEN + "/sendMessage" + "?chat_id=" + gid + "&parse_mode=HTML" \
-                      + "&text=" + msg_text
-            requests.get(url_req)
+            if max_hour_notification >= datetime.datetime.now().hour >= min_hour_notification:
+                url_req = "https://api.telegram.org/bot" + TOKEN + "/sendMessage" + "?chat_id=" + gid + "&parse_mode=HTML" \
+                          + "&text=" + msg_text
+                requests.get(url_req)
         except Exception as e:
             print(e)
 
