@@ -9,7 +9,8 @@ import requests
 import threading
 from bot_req import *
 
-excs = ["declare error_code", "ignore error code"]
+excs = ("declare error_code", "ignore error code")
+paths_to_scan = []
 
 
 class OnMyWatch:
@@ -43,10 +44,36 @@ class Handler(FileSystemEventHandler):
 
         elif event.event_type == 'created':
             # Event is created, you can process it now
-            scan_file(event.src_path)
+            add_to_paths_to_scan(event.src_path)
         elif event.event_type == 'modified':
             # Event is modified, you can process it now
-            scan_file(event.src_path)
+            add_to_paths_to_scan(event.src_path)
+
+
+def add_to_paths_to_scan(path):
+    print('add_to_paths_to_scan', path)
+    global paths_to_scan
+    if path not in paths_to_scan:
+        paths_to_scan.append(path)
+
+
+def manage_files_time():
+    global paths_to_scan
+    while True:
+        if len(paths_to_scan) > 0:
+            for i in paths_to_scan:
+                if i != '':
+                    time.sleep(1)
+                    scan_file(i)
+                    paths_to_scan[paths_to_scan.index(i)] = ''
+            clear_paths_to_scan()
+
+
+def clear_paths_to_scan():
+    global paths_to_scan
+    for i in paths_to_scan:
+        if i == '':
+            del paths_to_scan[paths_to_scan.index(i)]
 
 
 def send_notification(msg_text):
@@ -115,16 +142,17 @@ def scan_file(pname):
                 dname = pname[:pname.rfind('\\')]
                 template_head = f'<b>{fname}</b> ({dname})\n\n'
                 msg = template_head
-                for line in f[sqlite_select_lastline(pname):]:
+                start_line = sqlite_select_lastline(pname)
+                for line in f[start_line:]:
                     if ("error" in line.lower() or "exception" in line.lower()) and not is_exc(line.lower()):
-                        if len(msg + f'Cтрока: {f.index(line) + 1}\n{line}\n') > 4090:
+                        if len(msg + f'Cтрока: {f.index(line, start_line) + 1}\n{line}\n') > 4090:
                             send_notification(msg)
                             msg = template_head
                         else:
-                            msg += f'Cтрока: {f.index(line) + 1}\n{line}\n'
-                            f[f.index(line)] = ''
+                            msg += f'Cтрока: {f.index(line, start_line) + 1}\n{line}\n'
+                            f[f.index(line, start_line)] = ''
                     else:
-                        f[f.index(line)] = ''
+                        f[f.index(line, start_line)] = ''
                 sqlite_insert(pname, len_f)
                 if msg != template_head:
                     send_notification(msg)
@@ -159,6 +187,8 @@ if __name__ == '__main__':
     except IndexError:
         print('Не указана директория с которой необходимо работать.')
         exit(1)
+    manage_files_time_thread = threading.Thread(target=manage_files_time)
+    manage_files_time_thread.start()
     for path_dir in path_dirs:
         dir_thread = threading.Thread(target=watchdog_run, args=(path_dir,))
         dir_thread.start()
