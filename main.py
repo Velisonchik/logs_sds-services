@@ -50,26 +50,26 @@ class Handler(FileSystemEventHandler):
             add_to_paths_to_scan(event.src_path)
 
 
-def add_to_paths_to_scan(path): # Функция добавления файла в очередь
+def add_to_paths_to_scan(path):  # Функция добавления файла в очередь
     print('add_to_paths_to_scan', path)
     global paths_to_scan
     if path not in paths_to_scan:
         paths_to_scan.append(path)
 
 
-def manage_files_time(): # Функция для работы с очередью файлов на проверку
-    global paths_to_scan # Подтягиваем из глобального namespace список paths_to_scan
+def manage_files_time():  # Функция для работы с очередью файлов на проверку
+    global paths_to_scan  # Подтягиваем из глобального namespace список paths_to_scan
     while True:
         if len(paths_to_scan) > 0:
             for i in paths_to_scan:
                 if i != '':
                     time.sleep(1)
                     scan_file(i)
-                    paths_to_scan[paths_to_scan.index(i)] = '' # опустошение прочитанного элемента paths_to_scan
+                    paths_to_scan[paths_to_scan.index(i)] = ''  # опустошение прочитанного элемента paths_to_scan
             clear_paths_to_scan()
 
 
-def clear_paths_to_scan(): # Функция очистки очереди от опустошенных элементов
+def clear_paths_to_scan():  # Функция очистки очереди от опустошенных элементов
     global paths_to_scan
     for i in paths_to_scan:
         if i == '':
